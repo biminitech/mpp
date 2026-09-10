@@ -191,6 +191,26 @@ $ echo '{"method":"tools/call","params":{"name":"search","arguments":{"query":"h
 
 ::::
 
+## Multiple payment offers
+
+Use instance `compose()` when one MCP tool accepts multiple methods, currencies, or prices. The server returns every offer in one payment-required Challenge list. The client's Credential selects one offer, and `mppx` dispatches it to exactly one matching handler.
+
+```ts
+// [!code hl:start]
+const result = await mppx.compose(
+  [mppx.tempo.charge, { amount: '0.01', currency: pathUSD }],
+  [mppx.tempo.charge, { amount: '0.01', currency: USDCe }],
+)(extra)
+// [!code hl:end]
+
+if (result.status === 402) throw result.challenge
+return result.withReceipt({
+  content: [{ text: 'Paid result', type: 'text' }],
+})
+```
+
+Pass configured handler references such as `mppx.tempo.charge` instead of string keys when they're available. Every composed method must use the configured MCP transport. HTTP-only `canOffer` and `selectOffers` policies don't run for MCP composition.
+
 ## Multiple tools with different prices
 
 Set different prices per tool. Free tools don't need `mppx.charge` at all.
